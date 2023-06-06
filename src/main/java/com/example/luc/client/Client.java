@@ -261,8 +261,7 @@ public class Client {
             e.printStackTrace();
         }
     }
-    private void encryptFile(String fileToEncrypt, String encryptedFile, Consumer<Double> consumer)
-    {
+    private void encryptFile(String fileToEncrypt, String encryptedFile, Consumer<Double> consumer) throws InterruptedException {
         try (InputStream iStream = new FileInputStream(fileToEncrypt);
              OutputStream oStream = new FileOutputStream(encryptedFile)) {
             CFB cfb = new CFB();
@@ -277,8 +276,6 @@ public class Client {
 
     public boolean loadFile(Path file, Consumer<Double> consumer)
     {
-        Message downloadRequest = new Message("load", List.of(file.getFileName().toString()));
-        sendMessage(downloadRequest, server);
         Path encryptedFile = null;
         //шифруем файл
         try {
@@ -286,8 +283,32 @@ public class Client {
             encryptFile(file.toString(), encryptedFile.toString(), consumer);
         } catch (IOException e) {
             throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            System.out.println("interrupted");
+            try {
+                Files.deleteIfExists(encryptedFile);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+            return false;
         }
         status = STATUS.LOADING;
+
+        Message downloadRequest = new Message("load", List.of(file.getFileName().toString()));
+        sendMessage(downloadRequest, server);
+        if(serverStream.hasNext())
+        {
+            Message msg = parseMessage(serverStream.nextLine());
+            if(msg.type.equals("fail"))
+            {
+                try {
+                    Files.deleteIfExists(encryptedFile);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return false;
+            }
+        }
 
         final int BUFSIZ = 1024 * 1024; // Mb
         byte[] buf;

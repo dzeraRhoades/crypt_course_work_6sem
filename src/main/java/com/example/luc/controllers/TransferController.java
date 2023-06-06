@@ -15,6 +15,7 @@ import javafx.stage.Stage;
 
 import java.io.File;
 import java.nio.file.Paths;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
 public class TransferController {
@@ -84,6 +85,7 @@ public class TransferController {
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
+                        cancelButton.setDisable(false);
                         statusLabel.setText("Loading file...");
                     }
                 });
@@ -95,8 +97,25 @@ public class TransferController {
                 });
             }
         };
+        actionSucceed(mainTask);
+    }
+
+    private void actionSucceed(Task<Boolean> mainTask) {
         mainTask.setOnSucceeded(event -> {
-            statusLabel.setText("finished");
+            boolean res = true;
+            try {
+                res = mainTask.get();
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+            if(res)
+            {
+                statusLabel.setText("finished");
+            }
+            else
+            {
+                statusLabel.setText("Error");
+            }
             progressBar.setProgress(0);
             currentTaskThread = null;
             cancelButton.setDisable(true);
@@ -114,6 +133,7 @@ public class TransferController {
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
+                        cancelButton.setDisable(false);
                         statusLabel.setText("Downloading file...");
                     }
                 });
@@ -125,14 +145,7 @@ public class TransferController {
                 });
             }
         };
-        mainTask.setOnSucceeded(event -> {
-            statusLabel.setText("finished");
-            progressBar.setProgress(0);
-            currentTaskThread = null;
-            cancelButton.setDisable(true);
-        });
-        currentTaskThread = new Thread(mainTask);
-        currentTaskThread.start();
+        actionSucceed(mainTask);
     }
 
     public void setProgressBar(double val)

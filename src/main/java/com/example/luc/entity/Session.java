@@ -124,13 +124,14 @@ public class Session implements Runnable {
                 }
                 else
                 {
+                    sendMessage(new Message("ok", List.of("")), client);
                     if(loadFile(filename, client))
                         files.put(filename, "");
                 }
             }
             else
             {
-                throw new RuntimeException("operation " + msg.type + " is not supported");
+                System.out.println("operation " + msg.type + " is not supported");
             }
         }
 

@@ -19,8 +19,7 @@ public class CFB
     Consumer<Double> consumer;
 
     Camellia camellia;
-    public void encrypt(InputStream inputStream, OutputStream outputStream, int blockSize, Camellia camellia, byte[] iv)
-    {
+    public void encrypt(InputStream inputStream, OutputStream outputStream, int blockSize, Camellia camellia, byte[] iv) throws InterruptedException {
         int readBytes = 0;
         byte[] buf = null;
         byte[] res = new byte[blockSize];
@@ -45,7 +44,9 @@ public class CFB
                 iv = res.clone();
                 outputStream.write(res);
             }
-            if(buf != null && buf.length != 0 && !Thread.currentThread().isInterrupted())
+            if(Thread.interrupted())
+                throw new InterruptedException();
+            if(buf != null && buf.length != 0)
             {
                 buf = addPadding(buf, blockSize);
 

@@ -72,7 +72,7 @@ public class LUC {
         }
 
     }
-    private BigInteger lucasFast(BigInteger p, BigInteger n, BigInteger N)
+    public BigInteger lucasFast(BigInteger p, BigInteger n, BigInteger N)
     {
         boolean[] rems = getCount(n);
         BigInteger prev = BigInteger.TWO;
@@ -86,16 +86,16 @@ public class LUC {
             boolean curRem = rems[i];
             if(curRem)
             {
+                Vo = cur.pow(2).multiply(pInternal).subtract(cur.multiply(prev)).subtract(pInternal);
+                prev = cur.pow(2).subtract(BigInteger.TWO).mod(N);
+                cur = Vo.mod(N);
+            }
+            else
+            {
                 Ve = cur.pow(2).subtract(BigInteger.TWO);
                 Vo = cur.multiply(prev).subtract(pInternal);
                 prev = Vo.mod(N);
                 cur = Ve.mod(N);
-            }
-            else
-            {
-                Vo = cur.pow(2).multiply(pInternal).subtract(cur.multiply(prev)).subtract(pInternal);
-                prev = cur.pow(2).subtract(BigInteger.TWO).mod(N);
-                cur = Vo.mod(N);
             }
         }
         return cur;
@@ -103,14 +103,14 @@ public class LUC {
 
     private boolean[] getCount(BigInteger n)
     {
-        boolean[] count = new boolean[n.bitLength()];
+        boolean[] count = new boolean[n.bitLength()-1];
         int i = 0;
         while(n.compareTo(BigInteger.ONE) > 0)
         {
-            if(n.mod(BigInteger.TWO).equals(BigInteger.ZERO))
-                count[i] = true;
+            if(n.mod(BigInteger.TWO).equals(BigInteger.ONE))
+                count[count.length - i - 1] = true;
             else
-                count[i] = false;
+                count[count.length - i - 1] = false;
             n = n.divide(BigInteger.TWO);
             i++;
         }
